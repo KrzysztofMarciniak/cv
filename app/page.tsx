@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView } from "framer-motion";
 
 const WORD_DATA = [
   { word: "DRY", tag: "PRINCIPLE", desc: "Don't Repeat Yourself — write once, reuse everywhere" },
@@ -26,10 +26,9 @@ const STACK_GROUPS = [
   {
     label: "Languages",
     items: [
-
       { name: "Go", desc: "if err != nil" },
       { name: "Lisp", desc: "'The most powerful programming language is Lisp.' - R. Stallman" },
-{ name: "C", desc: "'C makes it easy to shoot yourself in the foot.' - B. Stroustrup" },
+      { name: "C", desc: "'C makes it easy to shoot yourself in the foot.' - B. Stroustrup" },
       { name: "C++", desc: "'C++ makes it harder, but when you do it blows your whole leg off.' - B. Stroustrup" },
       { name: "PHP", desc: "Personal Home Page" },
       { name: "Bash", desc: "Duct tape of the unix world." },
@@ -40,10 +39,7 @@ const STACK_GROUPS = [
     items: [
       { name: "Laravel", desc: "Batteries included!" },
       { name: "RESTful APIs", desc: "Zzz...😴" },
-      {
-        name: "SQLite",
-        desc: "'Airbus confirms that SQLite is being used in the flight software for the A350 XWB family of aircraft.' - sqlite.org/famous.html",
-      },
+      { name: "SQLite", desc: "'Airbus confirms that SQLite is being used in the flight software for the A350 XWB family of aircraft.' - sqlite.org/famous.html" },
       { name: "Postgresql", desc: "The elephant in the room" },
       { name: "Redis", desc: "O(1)" },
     ],
@@ -71,34 +67,14 @@ const STACK_GROUPS = [
 const SECTION_IDS = ["hello", "tagline", "identity", "stack", "contact"];
 
 const THEMES = [
-  "light",
-  "dark",
-  "forest",
-  "sepia",
-  "ocean",
-  "rose",
-  "sand",
-  "slate",
-  "lavender",
-  "amber",
-  "mint",
+  "light", "dark", "forest", "sepia", "ocean", "rose", "sand", "slate", "lavender", "amber", "mint",
 ];
 
 const THEME_LABELS: Record<string, string> = {
-  light: "●",
-  dark: "○",
-  sepia: "◐",
-  forest: "◉",
-  ocean: "◎",
-  rose: "◇",
-  sand: "◈",
-  slate: "◆",
-  lavender: "◑",
-  amber: "◕",
-  mint: "◍",
+  light: "●", dark: "○", sepia: "◐", forest: "◉", ocean: "◎",
+  rose: "◇", sand: "◈", slate: "◆", lavender: "◑", amber: "◕", mint: "◍",
 };
 
-/* SVG icons — inline, no dependency */
 const IconGithub = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
@@ -112,48 +88,21 @@ const IconLinkedIn = () => (
 );
 
 const IconMail = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="4" width="20" height="16" rx="2" />
     <path d="m2 7 10 7 10-7" />
   </svg>
 );
 
 const IconCopy = () => (
-  <svg
-    width="13"
-    height="13"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="9" y="9" width="13" height="13" rx="2" />
     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
   </svg>
 );
 
 const IconCheck = () => (
-  <svg
-    width="13"
-    height="13"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
@@ -170,85 +119,20 @@ const style = `
     --faint: #d4d0c8;
     --font-display: 'Instrument Serif', Georgia, serif;
     --font-body: 'Instrument Sans', sans-serif;
-    --pad: clamp(28px, 5vw, 64px);
+    --pad: clamp(20px, 5vw, 64px);
   }
 
-  [data-theme="dark"] {
-    --bg: #0f0e0c;
-    --fg: #f2efe9;
-    --muted: #555;
-    --faint: #1e1d1b;
-  }
-
-  [data-theme="sepia"] {
-    --bg: #f5f0e8;
-    --fg: #2c1810;
-    --muted: #8b6f5e;
-    --faint: #d4c4b0;
-  }
-
-  [data-theme="forest"] {
-    --bg: #0d1f0f;
-    --fg: #c8e6c9;
-    --muted: #4a7c59;
-    --faint: #1a3a1e;
-  }
-
-  [data-theme="ocean"] {
-    --bg: #040d1a;
-    --fg: #b8d4f0;
-    --muted: #3a6b9a;
-    --faint: #0a1e33;
-  }
-
-  [data-theme="rose"] {
-    --bg: #1a0a0d;
-    --fg: #f4c2cc;
-    --muted: #8b4a57;
-    --faint: #2e1218;
-  }
-
-  [data-theme="sand"] {
-    --bg: #e8dcc8;
-    --fg: #1a1208;
-    --muted: #7a6a4a;
-    --faint: #c8b898;
-  }
-
-  [data-theme="slate"] {
-    --bg: #0e1218;
-    --fg: #c8d4e0;
-    --muted: #4a6070;
-    --faint: #1a2030;
-  }
-
-  [data-theme="lavender"] {
-    --bg: #f0eef8;
-    --fg: #1a1030;
-    --muted: #7a6090;
-    --faint: #d0c8e8;
-  }
-
-  [data-theme="amber"] {
-    --bg: #1a0f00;
-    --fg: #f0c860;
-    --muted: #806020;
-    --faint: #2a1e00;
-  }
-
-  [data-theme="mint"] {
-    --bg: #eaf6f2;
-    --fg: #0a2018;
-    --muted: #4a8068;
-    --faint: #c0ddd4;
-  }
-
-  [data-theme="matrix"] {
-    --bg: #000000;
-    --fg: #39ff14;
-    --muted: #1aff8a;
-    --faint: #0b2f1a;
-  }
+  [data-theme="dark"] { --bg: #0f0e0c; --fg: #f2efe9; --muted: #555; --faint: #1e1d1b; }
+  [data-theme="sepia"] { --bg: #f5f0e8; --fg: #2c1810; --muted: #8b6f5e; --faint: #d4c4b0; }
+  [data-theme="forest"] { --bg: #0d1f0f; --fg: #c8e6c9; --muted: #4a7c59; --faint: #1a3a1e; }
+  [data-theme="ocean"] { --bg: #040d1a; --fg: #b8d4f0; --muted: #3a6b9a; --faint: #0a1e33; }
+  [data-theme="rose"] { --bg: #1a0a0d; --fg: #f4c2cc; --muted: #8b4a57; --faint: #2e1218; }
+  [data-theme="sand"] { --bg: #e8dcc8; --fg: #1a1208; --muted: #7a6a4a; --faint: #c8b898; }
+  [data-theme="slate"] { --bg: #0e1218; --fg: #c8d4e0; --muted: #4a6070; --faint: #1a2030; }
+  [data-theme="lavender"] { --bg: #f0eef8; --fg: #1a1030; --muted: #7a6090; --faint: #d0c8e8; }
+  [data-theme="amber"] { --bg: #1a0f00; --fg: #f0c860; --muted: #806020; --faint: #2a1e00; }
+  [data-theme="mint"] { --bg: #eaf6f2; --fg: #0a2018; --muted: #4a8068; --faint: #c0ddd4; }
+  [data-theme="matrix"] { --bg: #000000; --fg: #39ff14; --muted: #1aff8a; --faint: #0b2f1a; }
 
   html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
 
@@ -257,7 +141,7 @@ const style = `
     color: var(--fg);
     font-family: var(--font-body);
     overflow-x: hidden;
-    transition: background 0.3s, color 0.3s;
+    transition: background 0.4s, color 0.4s;
   }
 
   ::-webkit-scrollbar { width: 1px; }
@@ -265,7 +149,7 @@ const style = `
   ::-webkit-scrollbar-thumb { background: var(--fg); }
 
   section {
-    height: 100vh;
+    height: 100dvh;
     width: 100%;
     position: relative;
     display: flex;
@@ -280,7 +164,7 @@ const style = `
     left: 0;
     top: 0;
     width: 2px;
-    height: 100vh;
+    height: 100dvh;
     z-index: 300;
     background: var(--faint);
   }
@@ -300,13 +184,13 @@ const style = `
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 22px var(--pad);
-    gap: 24px;
+    padding: 18px var(--pad);
+    gap: 16px;
   }
 
   .nav-links {
     display: flex;
-    gap: 24px;
+    gap: 4px;
     list-style: none;
     align-items: center;
   }
@@ -314,6 +198,7 @@ const style = `
   .nav-links a {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     font-family: var(--font-body);
     font-size: 11px;
@@ -322,7 +207,11 @@ const style = `
     text-transform: uppercase;
     text-decoration: none;
     color: var(--fg);
-    transition: color 0.15s;
+    transition: color 0.15s, background 0.15s;
+    padding: 8px 10px;
+    border-radius: 2px;
+    min-width: 44px;
+    min-height: 44px;
   }
   .nav-links a:hover { color: var(--muted); }
 
@@ -331,8 +220,8 @@ const style = `
     border: 1px solid var(--faint);
     cursor: pointer;
     color: var(--muted);
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: 2px;
     display: flex;
     align-items: center;
@@ -345,11 +234,11 @@ const style = `
 
   .page-indicator {
     position: fixed;
-    bottom: 32px;
+    bottom: 24px;
     right: var(--pad);
     z-index: 200;
     font-family: var(--font-body);
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 400;
     letter-spacing: 0.12em;
     color: var(--muted);
@@ -364,7 +253,7 @@ const style = `
 
   .datetime {
     position: fixed;
-    bottom: 32px;
+    bottom: 24px;
     left: var(--pad);
     z-index: 200;
     font-family: var(--font-body);
@@ -375,15 +264,18 @@ const style = `
     line-height: 1.6;
   }
 
+  /* ── Hello ── */
   #hello { padding: 0 var(--pad); }
 
   .hello-word {
     font-family: var(--font-display);
-    font-size: clamp(80px, 22vw, 350px);
+    font-size: clamp(72px, 22vw, 350px);
     letter-spacing: -0.03em;
     color: var(--fg);
     user-select: none;
     line-height: 0.9;
+    display: flex;
+    align-items: flex-end;
   }
 
   .hello-period {
@@ -395,19 +287,11 @@ const style = `
     position: relative;
     margin-left: 0.05em;
     flex-shrink: 0;
+    border-radius: 50%;
   }
 
-  @keyframes nudge {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(4px); }
-  }
-
-  #tagline {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
+  /* ── Tagline ── */
+  #tagline { padding: 0; display: flex; flex-direction: column; justify-content: center; }
 
   .tagline-inner {
     display: flex;
@@ -426,7 +310,7 @@ const style = `
 
   .tagline-word {
     font-family: var(--font-display);
-    font-size: clamp(48px, 12vw, 160px);
+    font-size: clamp(44px, 12vw, 160px);
     font-weight: 400;
     letter-spacing: -0.03em;
     line-height: 0.9;
@@ -437,7 +321,7 @@ const style = `
 
   .tagline-software {
     font-family: var(--font-display);
-    font-size: clamp(48px, 12vw, 160px);
+    font-size: clamp(44px, 12vw, 160px);
     font-weight: 400;
     letter-spacing: -0.03em;
     line-height: 0.9;
@@ -448,19 +332,19 @@ const style = `
   .tagline-annotation {
     margin-bottom: 0.18em;
     border-left: 1px solid var(--faint);
-    padding-left: 20px;
+    padding-left: 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-width: 180px;
-    max-width: 280px;
+    min-width: 160px;
+    max-width: 260px;
   }
 
   .tagline-controls {
     display: flex;
     align-items: center;
     gap: 0;
-    margin-top: 28px;
+    margin-top: 20px;
   }
 
   .ctrl-btn {
@@ -468,23 +352,20 @@ const style = `
     border: none;
     cursor: pointer;
     color: var(--muted);
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
-    transition: color 0.15s;
+    font-size: 14px;
+    transition: color 0.15s, transform 0.1s;
     padding: 0;
+    border-radius: 2px;
   }
   .ctrl-btn:hover { color: var(--fg); }
+  .ctrl-btn:active { transform: scale(0.9); }
 
-  .ctrl-divider {
-    width: 1px;
-    height: 14px;
-    background: var(--faint);
-    margin: 0 2px;
-  }
+  .ctrl-divider { width: 1px; height: 14px; background: var(--faint); margin: 0 2px; }
 
   .ctrl-counter {
     font-family: var(--font-body);
@@ -494,11 +375,12 @@ const style = `
     margin-left: 12px;
   }
 
+  /* ── Identity ── */
   #identity { padding: 0 var(--pad); }
 
   .identity-name {
     font-family: var(--font-display);
-    font-size: clamp(48px, 11vw, 148px);
+    font-size: clamp(40px, 11vw, 148px);
     font-weight: 400;
     letter-spacing: -0.03em;
     line-height: 0.88;
@@ -506,7 +388,7 @@ const style = `
   .identity-name span { display: block; }
 
   .identity-footnote {
-    margin-top: 32px;
+    margin-top: 28px;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -532,11 +414,13 @@ const style = `
     opacity: 0.4;
   }
 
+  /* ── Stack ── */
   #stack {
-    padding: 80px var(--pad) 0;
+    padding: 70px var(--pad) 0;
     flex-direction: column;
     justify-content: flex-start;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .stack-header {
@@ -546,7 +430,7 @@ const style = `
     letter-spacing: 0.25em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
 
   .stack-groups {
@@ -557,11 +441,11 @@ const style = `
   }
 
   .stack-group {
-    padding: 28px 0;
+    padding: 24px 0;
     border-bottom: 1px solid var(--faint);
   }
-  .stack-group:nth-child(odd)  { padding-right: 40px; border-right: 1px solid var(--faint); }
-  .stack-group:nth-child(even) { padding-left: 40px; }
+  .stack-group:nth-child(odd) { padding-right: 32px; border-right: 1px solid var(--faint); }
+  .stack-group:nth-child(even) { padding-left: 32px; }
 
   .stack-group-label {
     font-family: var(--font-body);
@@ -570,33 +454,35 @@ const style = `
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
-  .stack-items { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stack-items { display: flex; flex-wrap: wrap; gap: 6px; }
 
-  .stack-tag-wrap {
-    position: relative;
-  }
+  .stack-tag-wrap { position: relative; }
 
   .stack-tag {
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.02em;
     color: var(--fg);
     border: 1px solid var(--faint);
-    padding: 4px 12px;
+    padding: 5px 10px;
     border-radius: 2px;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
     cursor: default;
     display: block;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
   }
 
   .stack-tag:hover {
     background: var(--fg);
     color: var(--bg);
     border-color: var(--fg);
+    transform: translateY(-1px);
   }
 
   .stack-tag-wrap:hover .stack-tooltip {
@@ -621,7 +507,7 @@ const style = `
     border-radius: 2px;
     white-space: normal;
     width: max-content;
-    max-width: 220px;
+    max-width: 200px;
     opacity: 0;
     transition: opacity 0.15s, transform 0.15s;
     pointer-events: none;
@@ -638,11 +524,12 @@ const style = `
     border-top-color: var(--fg);
   }
 
+  /* ── Contact ── */
   #contact { padding: 0 var(--pad); }
 
   .contact-big {
     font-family: var(--font-display);
-    font-size: clamp(40px, 10vw, 128px);
+    font-size: clamp(36px, 10vw, 128px);
     font-weight: 400;
     letter-spacing: -0.03em;
     line-height: 0.88;
@@ -650,7 +537,7 @@ const style = `
   }
 
   .contact-email-row {
-    margin-top: 36px;
+    margin-top: 32px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -659,19 +546,17 @@ const style = `
 
   .contact-email {
     font-family: var(--font-body);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 300;
     letter-spacing: 0.04em;
     color: var(--muted);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: color 0.2s, border-color 0.2s;
+    padding: 4px 0;
   }
 
-  .contact-email:hover {
-    color: var(--fg);
-    border-color: var(--fg);
-  }
+  .contact-email:hover { color: var(--fg); border-color: var(--fg); }
 
   .copy-btn {
     background: none;
@@ -685,15 +570,16 @@ const style = `
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    padding: 4px 0;
+    padding: 8px 4px;
     transition: color 0.2s;
+    min-height: 44px;
   }
 
   .copy-btn:hover { color: var(--fg); }
   .copy-btn.copied { color: var(--fg); }
 
   .contact-footnote {
-    margin-top: 48px;
+    margin-top: 40px;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -702,16 +588,66 @@ const style = `
     max-width: 320px;
   }
 
+  /* ── Mobile ── */
   @media (max-width: 640px) {
-    .tagline-row-top { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .tagline-annotation { border-left: none; padding-left: 0; border-top: 1px solid var(--faint); padding-top: 12px; }
-    .nav-links a span.nav-label { display: none; }
+    :root { --pad: 20px; }
+
+    section { height: 100dvh; }
+
+    nav { padding: 14px var(--pad); gap: 8px; }
+
+    .nav-links { gap: 0; }
+    .nav-links a { padding: 10px 10px; min-width: 44px; }
+    .nav-links a .nav-label { display: none; }
+
     .datetime { display: none; }
+
+    .page-indicator {
+      bottom: 20px;
+      font-size: 12px;
+    }
+
+    /* Hello */
+    #hello { padding: 0 var(--pad); }
+    .hello-word { font-size: clamp(72px, 24vw, 200px); }
+
+    /* Tagline */
+    .tagline-inner { padding: 0 var(--pad); gap: 0; }
+    .tagline-row-top {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .tagline-annotation {
+      border-left: none;
+      padding-left: 0;
+      border-top: 1px solid var(--faint);
+      padding-top: 12px;
+      max-width: 100%;
+      min-width: 0;
+    }
+    .tagline-word { font-size: clamp(52px, 14vw, 100px); }
+    .tagline-software { font-size: clamp(52px, 14vw, 100px); }
+    .tagline-controls { margin-top: 16px; }
+
+    /* Identity */
+    #identity { padding: 0 var(--pad); }
+    .identity-name { font-size: clamp(40px, 13vw, 100px); }
+    .identity-footnote { margin-top: 20px; }
+
+    /* Stack — single column on mobile */
+    #stack { padding: 70px var(--pad) 20px; }
     .stack-groups { grid-template-columns: 1fr; }
     .stack-group:nth-child(odd) { border-right: none; padding-right: 0; }
     .stack-group:nth-child(even) { padding-left: 0; }
-    .identity-footnote { margin-top: 20px; }
+    .stack-tag { font-size: 13px; padding: 6px 12px; min-height: 36px; }
     .stack-tooltip { display: none; }
+
+    /* Contact */
+    #contact { padding: 0 var(--pad); }
+    .contact-big { font-size: clamp(36px, 12vw, 80px); }
+    .contact-email { font-size: 13px; }
+    .contact-footnote { margin-top: 28px; }
   }
 `;
 
@@ -723,9 +659,7 @@ function useActivePage() {
       const el = document.getElementById(id);
       if (!el) return null;
       const obs = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) setPage(i + 1);
-        },
+        ([entry]) => { if (entry.isIntersecting) setPage(i + 1); },
         { threshold: 0.5 }
       );
       obs.observe(el);
@@ -748,7 +682,6 @@ function useScrollProgress() {
       const total = el.scrollHeight - el.clientHeight;
       setPct(total > 0 ? (scrolled / total) * 100 : 0);
     };
-
     window.addEventListener("scroll", update, { passive: true });
     update();
     return () => window.removeEventListener("scroll", update);
@@ -763,25 +696,47 @@ function useDateTime() {
   useEffect(() => {
     const fmt = () => {
       const now = new Date();
-      const date = now.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-      const time = now.toLocaleTimeString(undefined, {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
+      const date = now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+      const time = now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       setDt({ date, time });
     };
-
     fmt();
     const id = setInterval(fmt, 1000);
     return () => clearInterval(id);
   }, []);
 
   return dt;
+}
+
+/* ── Reveal wrapper: slides + fades in when section enters view ── */
+function Reveal({
+  children,
+  delay = 0,
+  y = 24,
+  className,
+  style: inlineStyle,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  y?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-10% 0px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      style={inlineStyle}
+      initial={{ opacity: 0, y }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 function ScrollProgressBar() {
@@ -796,36 +751,53 @@ function ScrollProgressBar() {
 function DateTime() {
   const { date, time } = useDateTime();
   return (
-    <div className="datetime">
+    <motion.div
+      className="datetime"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.5 }}
+      transition={{ delay: 1.2, duration: 0.8 }}
+    >
       <div>{date}</div>
       <div>{time}</div>
-    </div>
+    </motion.div>
   );
 }
 
 function PageIndicator({ page }: { page: number }) {
   return (
-    <div className="page-indicator">
+    <motion.div
+      className="page-indicator"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1, duration: 0.6 }}
+    >
       <span>{TOTAL_SECTIONS}</span>
       <span style={{ width: 1, height: 20, background: "var(--faint)", display: "inline-block" }} />
-      <span className="current">{String(page).padStart(2, "0")}</span>
-      <span
-        style={{
-          width: 1,
-          height: 20,
-          background: "var(--faint)",
-          display: "inline-block",
-          marginTop: 8,
-        }}
-      />
-      <span style={{ fontSize: 18, letterSpacing: "0.1em", color: "var(--muted)", opacity: 0.5 }}>k↑ j↓</span>
-    </div>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={page}
+          className="current"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 6 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
+          {String(page).padStart(2, "0")}
+        </motion.span>
+      </AnimatePresence>
+      <span style={{ width: 1, height: 20, background: "var(--faint)", display: "inline-block", marginTop: 8 }} />
+      <span style={{ fontSize: 14, letterSpacing: "0.1em", color: "var(--muted)", opacity: 0.5 }}>k↑ j↓</span>
+    </motion.div>
   );
 }
 
 function NavBar({ theme, onToggle }: { theme: string; onToggle: () => void }) {
   return (
-    <nav>
+    <motion.nav
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
       <ul className="nav-links">
         <li>
           <a href="https://github.com/KrzysztofMarciniak" target="_blank" rel="noreferrer">
@@ -847,17 +819,48 @@ function NavBar({ theme, onToggle }: { theme: string; onToggle: () => void }) {
         </li>
       </ul>
       <button className="theme-toggle" onClick={onToggle} aria-label="Toggle theme" title={theme}>
-        {THEME_LABELS[theme]}
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={theme}
+            initial={{ opacity: 0, rotate: -30, scale: 0.7 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: 30, scale: 0.7 }}
+            transition={{ duration: 0.2 }}
+          >
+            {THEME_LABELS[theme]}
+          </motion.span>
+        </AnimatePresence>
       </button>
-    </nav>
+    </motion.nav>
   );
 }
 
 function HelloSection() {
+  const letters = "hello".split("");
+
   return (
     <section id="hello">
       <div className="hello-word">
-        hello<span className="hello-period" />
+        {letters.map((l, i) => (
+          <motion.span
+            key={i}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.7,
+              delay: i * 0.07,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
+            {l}
+          </motion.span>
+        ))}
+        <motion.span
+          className="hello-period"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+        />
       </div>
     </section>
   );
@@ -900,18 +903,8 @@ function TaglineSection() {
     return () => observer.disconnect();
   }, [playing, startCycle, stopCycle]);
 
-  const prev = () => {
-    stopCycle();
-    setPlaying(false);
-    setIndex((i) => (i - 1 + WORD_DATA.length) % WORD_DATA.length);
-  };
-
-  const next = () => {
-    stopCycle();
-    setPlaying(false);
-    setIndex((i) => (i + 1) % WORD_DATA.length);
-  };
-
+  const prev = () => { stopCycle(); setPlaying(false); setIndex((i) => (i - 1 + WORD_DATA.length) % WORD_DATA.length); };
+  const next = () => { stopCycle(); setPlaying(false); setIndex((i) => (i + 1) % WORD_DATA.length); };
   const togglePlay = () => setPlaying((p) => !p);
 
   const current = WORD_DATA[index];
@@ -925,10 +918,10 @@ function TaglineSection() {
               <motion.span
                 key={current.word}
                 className="tagline-word"
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
+                initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -20, filter: "blur(8px)" }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               >
                 {current.word}
               </motion.span>
@@ -946,10 +939,10 @@ function TaglineSection() {
                   textTransform: "uppercase",
                   color: "var(--muted)",
                 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 6 }}
+                transition={{ duration: 0.25 }}
               >
                 [ {current.tag} ]
               </motion.span>
@@ -964,10 +957,10 @@ function TaglineSection() {
                   color: "var(--fg)",
                   lineHeight: 1.4,
                 }}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3, delay: 0.05 }}
+                initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                transition={{ duration: 0.3, delay: 0.06 }}
               >
                 {current.desc}
               </motion.span>
@@ -975,20 +968,34 @@ function TaglineSection() {
           </div>
         </div>
 
-        <span className="tagline-software">software</span>
+        <motion.span
+          className="tagline-software"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          viewport={{ once: true }}
+        >
+          software
+        </motion.span>
 
         <div className="tagline-controls">
-          <button className="ctrl-btn" onClick={prev} aria-label="Previous">
-            ←
-          </button>
+          <button className="ctrl-btn" onClick={prev} aria-label="Previous">←</button>
           <div className="ctrl-divider" />
           <button className="ctrl-btn" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
-            {playing ? "⏸" : "⏵"}
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={playing ? "pause" : "play"}
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.15 }}
+              >
+                {playing ? "⏸" : "⏵"}
+              </motion.span>
+            </AnimatePresence>
           </button>
           <div className="ctrl-divider" />
-          <button className="ctrl-btn" onClick={next} aria-label="Next">
-            →
-          </button>
+          <button className="ctrl-btn" onClick={next} aria-label="Next">→</button>
           <span className="ctrl-counter">
             {String(index + 1).padStart(2, "0")} / {String(WORD_DATA.length).padStart(2, "0")}
           </span>
@@ -1002,13 +1009,19 @@ function IdentitySection() {
   return (
     <section id="identity">
       <div className="identity-name">
-        <span>Krzysztof</span>
-        <span>Marciniak</span>
+        <Reveal delay={0}>
+          <span>Krzysztof</span>
+        </Reveal>
+        <Reveal delay={0.08}>
+          <span>Marciniak</span>
+        </Reveal>
       </div>
-      <div className="identity-footnote">
-        <p className="footnote-line">Software engineer based in Poland.</p>
-        <p className="footnote-line">Focused on systems, the web, and things that last.</p>
-      </div>
+      <Reveal delay={0.2} y={12}>
+        <div className="identity-footnote">
+          <p className="footnote-line">Software engineer based in Poland.</p>
+          <p className="footnote-line">Focused on systems, the web, and things that last.</p>
+        </div>
+      </Reveal>
     </section>
   );
 }
@@ -1025,17 +1038,29 @@ function StackTag({ name, desc }: { name: string; desc: string }) {
 function StackSection() {
   return (
     <section id="stack">
-      <p className="stack-header">Tech stack</p>
+      <Reveal y={12}>
+        <p className="stack-header">Tech stack</p>
+      </Reveal>
       <div className="stack-groups">
-        {STACK_GROUPS.map((g) => (
-          <div className="stack-group" key={g.label}>
-            <p className="stack-group-label">{g.label}</p>
-            <div className="stack-items">
-              {g.items.map((item) => (
-                <StackTag key={item.name} name={item.name} desc={item.desc} />
-              ))}
+        {STACK_GROUPS.map((g, gi) => (
+          <Reveal key={g.label} delay={gi * 0.06} y={16} style={{ display: "contents" }}>
+            <div className="stack-group">
+              <p className="stack-group-label">{g.label}</p>
+              <div className="stack-items">
+                {g.items.map((item, ii) => (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, margin: "-5%" }}
+                    transition={{ duration: 0.3, delay: gi * 0.04 + ii * 0.03, ease: "easeOut" }}
+                  >
+                    <StackTag name={item.name} desc={item.desc} />
+                  </motion.div>
+                ))}
+              </div>
             </div>
-          </div>
+          </Reveal>
         ))}
       </div>
     </section>
@@ -1054,8 +1079,19 @@ function CopyEmailButton({ email }: { email: string }) {
 
   return (
     <button className={`copy-btn${copied ? " copied" : ""}`} onClick={copy} aria-label="Copy email">
-      {copied ? <IconCheck /> : <IconCopy />}
-      <span>{copied ? "copied" : "copy"}</span>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={copied ? "check" : "copy"}
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.6 }}
+          transition={{ duration: 0.15 }}
+          style={{ display: "flex", alignItems: "center", gap: 5 }}
+        >
+          {copied ? <IconCheck /> : <IconCopy />}
+          <span>{copied ? "copied" : "copy"}</span>
+        </motion.span>
+      </AnimatePresence>
     </button>
   );
 }
@@ -1065,21 +1101,25 @@ function ContactSection() {
   return (
     <section id="contact">
       <div>
-        <div className="contact-big">
-          let&apos;s build
-          <br />
-          something.
-        </div>
-        <div className="contact-email-row">
-          <a className="contact-email" href={`mailto:${EMAIL}`}>
-            {EMAIL}
-          </a>
-          <CopyEmailButton email={EMAIL} />
-        </div>
-        <div className="contact-footnote">
-          <p className="footnote-line">Response within one business day.</p>
-          <p className="footnote-line">Available for contract and full-time opportunities.</p>
-        </div>
+        <Reveal y={30}>
+          <div className="contact-big">
+            let&apos;s build
+            <br />
+            something.
+          </div>
+        </Reveal>
+        <Reveal delay={0.12} y={16}>
+          <div className="contact-email-row">
+            <a className="contact-email" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+            <CopyEmailButton email={EMAIL} />
+          </div>
+        </Reveal>
+        <Reveal delay={0.22} y={12}>
+          <div className="contact-footnote">
+            <p className="footnote-line">Response within one business day.</p>
+            <p className="footnote-line">Available for contract and full-time opportunities.</p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -1120,14 +1160,8 @@ export default function Portfolio() {
 
   useEffect(() => {
     console.clear();
-    console.log(
-      "%c👋 Hello from the source code!",
-      "color: #39ff14; font-size: 20px; font-weight: bold; background: #000; padding: 8px;"
-    );
-    console.log(
-      "%cTry calling runSecretMode() right here in the console.",
-      "color: #1aff8a; font-style: italic;"
-    );
+    console.log("%c👋 Hello from the source code!", "color: #39ff14; font-size: 20px; font-weight: bold; background: #000; padding: 8px;");
+    console.log("%cTry calling runSecretMode() right here in the console.", "color: #1aff8a; font-style: italic;");
 
     (window as any).runSecretMode = () => {
       document.documentElement.setAttribute("data-theme", "matrix");
@@ -1135,11 +1169,7 @@ export default function Portfolio() {
       return "🕶️ Done.";
     };
 
-    return () => {
-      if ((window as any).runSecretMode) {
-        delete (window as any).runSecretMode;
-      }
-    };
+    return () => { if ((window as any).runSecretMode) delete (window as any).runSecretMode; };
   }, []);
 
   useEffect(() => {
