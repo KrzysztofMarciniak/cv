@@ -972,7 +972,7 @@ function TaglineSection() {
           className="tagline-software"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 1, delay: 0.1 }}
           viewport={{ once: true }}
         >
           software
@@ -1001,15 +1001,8 @@ const IconPlay = () => (
     <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
   </svg>
 );
-<motion.span
-  key={playing ? "pause" : "play"}
-  initial={{ opacity: 0, scale: 0.6 }}
-  animate={{ opacity: 1, scale: 1 }}
-  exit={{ opacity: 0, scale: 0.6 }}
-  transition={{ duration: 0.15 }}
->
-  {playing ? <IconPause /> : <IconPlay />}
-</motion.span>
+                {playing ? "⏸" : "⏵"}
+              </motion.span>
             </AnimatePresence>
           </button>
           <div className="ctrl-divider" />
